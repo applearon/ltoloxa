@@ -7,6 +7,4 @@ index.ts shows a simple example
 ![Example of a minigame server](./assets/minigame.png)
 
 
-## Credits
-- Applearon
-- [wiki.vg](https://wiki.vg/Classic_Protocol)
+Thanks to [wiki.vg](https://wiki.vg/Classic_Protocol) for providing the minecraft classic protocol.

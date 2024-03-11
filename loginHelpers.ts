@@ -53,7 +53,7 @@ export async function sendWorld(size, worldGZ, socket) {
         }
         info.push(i); // this is the percent complete
         byteInfo.push('hex');
-        console.log("sending wave ", info.length);
+        //console.log("sending wave ", info.length);
         socket.write(await parseTypes(info, byteInfo));
     }
     // now we send the final one

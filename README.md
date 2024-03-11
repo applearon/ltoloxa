@@ -7,6 +7,8 @@ Simplfies creating a Minecraft Classic server by parsing the raw packets, and fo
 
 ![Example of a minigame server](./assets/minigame.png)
 
+
+## Usage
 ```js
 import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from 'types.ts';
 import { getID, returnServerID, sendWorld,spawnPlayer, spawnPlayer } from 'loginHelpers.ts';

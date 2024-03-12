@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from '../types.ts';
 import { getID, returnServerID, sendWorld,spawnPlayer, spawnPlayer } from '../loginHelpers.ts';
+import { returnChatMsg } from '../utils.ts';
 import { broadcast, parseClientData } from '../socketHelpers.ts';
 //const level_data = Bun.file("appleWorld.gz");
 let WorldSize = [256, 64, 256];
@@ -9,17 +10,6 @@ let players = new Map();
 let spawnPos = {x: 8, y: 65, z: 8, yaw: 0x5a, pitch: 0} as PlayerPos;
 let deltas = [];
 let server;
-async function returnChatMsg(string, playerID, players, system = false) {
-    let pid = 0x0d;
-    let str;
-    if (system === false) {
-        str = ("<").concat(players.get(playerID).username, "> ", string);
-    } else {
-        str = string;
-    }
-    return parseTypes([pid, playerID, str], ['hex', 'hex', 'string']);
-
-}
 async function buildMini(dimensions) {
     let lx = dimensions[0];
     let lz = dimensions[2];

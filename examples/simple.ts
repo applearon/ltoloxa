@@ -2,23 +2,13 @@
 import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from '../types.ts';
 import { getID, returnServerID, sendWorld,spawnPlayer, spawnPlayer } from '../loginHelpers.ts';
 import { broadcast, parseClientData } from '../socketHelpers.ts';
+import { returnChatMsg } from '../utils.ts';
 import { lto } from '../index.ts';
 const WorldSize = [512, 64, 512];
 let players = new Map();
 let spawnPos = {x: 256, y: 40, z: 256, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let deltas = [];
 let server;
-async function returnChatMsg(string, playerID, players, system = false) {
-    let pid = 0x0d;
-    let str;
-    if (system === false) {
-        str = ("<").concat(players.get(playerID).username, "> ", string);
-    } else {
-        str = string;
-    }
-    return parseTypes([pid, playerID, str], ['hex', 'hex', 'string']);
-
-}
 async function buildWorld(dimensions, deltas) {
     let lx = dimensions[0];
     let lz = dimensions[2];
@@ -53,30 +43,18 @@ async function buildWorld(dimensions, deltas) {
 }
 
 lto.on('login', async (packet, socket) => {
-                socket.data = { PlayerID: await getID(players)};
-                console.log("we got a player identification !");
-                if (packet.Data.PVersion === 0x07) {
-                    console.log("Valid Packet Version!");
-                    console.log(`Username: ${packet.Data.username}`);
-                    console.log(`Verification Key: ${packet.Data.verifyKey}`);
-                    let resp = await returnServerID("AppleServer", "Aron's Javascript Server", false);
-                    console.log("resp:");
-                    console.log(await parseString(resp, 2));
-                    socket.write(resp);
-                    let player = {username: packet.Data.username, Position: spawnPos, socket: socket} as Player;
-                    players.set(socket.data.PlayerID, player);
-                    // now we send them da LEVELLLL
-                    let worldGZ = Bun.gzipSync(await buildWorld(WorldSize, deltas));
-                    sendWorld(WorldSize, worldGZ, socket);
-                    spawnPlayer(socket, player, players)
-                    broadcast(players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID, players, true));
-                    } else {
-                    console.log("Invalid Packet Version!!!");
-                    socket.end();
-                }
-
-
+    socket.data = { PlayerID: await getID(players)};
+    let resp = await returnServerID("ltoloxA Server", "Simple ltoloxA Server", false);
+    socket.write(resp);
+    let player = {username: packet.Data.username, Position: spawnPos, socket: socket} as Player;
+    players.set(socket.data.PlayerID, player);
+    // now we send them da LEVELLLL
+    let worldGZ = Bun.gzipSync(await buildWorld(WorldSize, deltas));
+    sendWorld(WorldSize, worldGZ, socket);
+    spawnPlayer(socket, player, players)
+    broadcast(players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID, players));
 });
+
 lto.on('block', async (packet, socket, data) => {
     console.log(`${players.get(socket.data.PlayerID).username} placed ${packet.Data.block} at (${packet.Data.x},${packet.Data.y},${packet.Data.z})`);
     let resp = [0x06, data[1], data[2], data[3], data[4], data[5], data[6], packet.Data.block];
@@ -90,7 +68,8 @@ lto.on('pos', async (packet, socket, data) => {
 })
 
 lto.on('chat', async (packet, socket, data) => {
-    broadcast(players, await returnChatMsg(packet.Data.msg, socket.data.PlayerID, players))
+    let msg = '<' + players.get(socket.data.PlayerID).username + '> ' + packet.Data.msg;
+    broadcast(players, await returnChatMsg(msg, socket.data.PlayerID, players));
 })
 
 lto.on('disconnect', async (socket) => {
@@ -101,6 +80,6 @@ lto.on('disconnect', async (socket) => {
             // despawn player packet:
             let resp = [0x0c, ID];
             broadcast(players, await parseTypes(resp, ['hex', 'hex']));
-            broadcast(players, await returnChatMsg(uname + ' disconnected!', socket.data.PlayerID, players, true));
+            broadcast(players, await returnChatMsg(uname + ' disconnected!', socket.data.PlayerID, players));
         }
 })

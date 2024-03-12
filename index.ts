@@ -17,7 +17,13 @@ Bun.listen({
         let packet = await parseClientData(socket, data);
         switch (packet.ID) {
             case 0x00: { // login
-                lto.emit('login', packet, socket, data);
+                if (packet.Data.PVersion === 0x07) {
+                    console.log(`${packet.Data.username} attempting to join`);
+                    lto.emit('login', packet, socket, data);
+                } else {
+                    console.log("Invalid Packet Version, closing connection");
+                    socket.end();
+                }
             } break;
             case 0x05: { // place/break block
                 lto.emit('block', packet, socket, data);

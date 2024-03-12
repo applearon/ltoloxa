@@ -40,3 +40,8 @@ export async function posUpdate(ID, World, packet, data) {
     broadcast(World.players, await parseTypes(resp, ['hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex']));
 
 }
+
+// WARNING: Don't expose this as a command, as it literally writes to the system
+export async function exportWorld(World, func, file) {
+    await Bun.write(file, buildWorld(World, func));
+}

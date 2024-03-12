@@ -29,6 +29,14 @@ export interface Player {
     Position: PlayerPos,
     socket: Socket,
 }
+export interface World {
+    x: number,
+    y: number,
+    z: number,
+    buffer?: Buffer,
+    deltas?: Array<number> | boolean,
+    players: Map, 
+}
 
 export async function parseShort(data, begin) {
     // return the number of index begin (inclusive)

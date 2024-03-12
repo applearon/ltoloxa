@@ -34,7 +34,7 @@ export async function returnServerID(name, motd, isOp: bool) {
     
 }
 
-export async function sendWorld(size, worldGZ, socket) {
+export async function sendWorld(World, worldGZ, socket) {
     // TODO
     socket.write(new Uint8Array([0x02]));
     // Get them chunkkks
@@ -78,7 +78,7 @@ export async function sendWorld(size, worldGZ, socket) {
     
     //socket.write(new Uint8Array([0x04, 0x01, 0x00, 0x00, 0x64, 0x01, 0x00]));
     
-    socket.write(await parseTypes([0x04, size[0], size[1], size[2]], ['hex', 'short', 'short', 'short']));
+    socket.write(await parseTypes([0x04, World.x, World.y, World.z], ['hex', 'short', 'short', 'short']));
 }
 
 export async function spawnPlayer(socket, player, players) {

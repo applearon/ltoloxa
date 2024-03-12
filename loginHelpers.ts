@@ -34,8 +34,9 @@ export async function returnServerID(name, motd, isOp: bool) {
     
 }
 
-export async function sendWorld(World, worldGZ, socket) {
-    // TODO
+export async function sendWorld(World, player, worldGZ, socket) {
+    let resp = await returnServerID(World.name, World.motd, player.op);
+    socket.write(resp);
     socket.write(new Uint8Array([0x02]));
     // Get them chunkkks
     //let array = await new Uint8Array(await level_data.arrayBuffer());

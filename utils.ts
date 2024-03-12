@@ -35,3 +35,8 @@ export async function placeBlock(World, packet) {
     broadcast(World.players, await parseTypes(resp, ['hex', 'short', 'short', 'short', 'hex']));
 }
 
+export async function posUpdate(ID, World, packet, data) {
+    let resp = [0x08, ID, data[2], data[3], data[4], data[5], data[6], data[7], packet.Data.yaw, packet.Data.pitch];
+    broadcast(World.players, await parseTypes(resp, ['hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex']));
+
+}

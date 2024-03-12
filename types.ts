@@ -28,11 +28,14 @@ export interface Player {
     username: string,
     Position: PlayerPos,
     socket: Socket,
+    op: boolean,
 }
 export interface World {
     x: number,
     y: number,
     z: number,
+    name: string,
+    motd: string,
     buffer?: Buffer,
     deltas?: Array<number> | boolean,
     players: Map, 

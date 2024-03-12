@@ -63,3 +63,6 @@ export async function parseClientData(socket, data) {
     return packetdata
 };
 
+export async function despawnPlayer(ID, World) {
+    broadcast(World.players, await parseTypes([0x0c, ID], ['hex', 'hex']));
+}

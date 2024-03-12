@@ -52,7 +52,7 @@ lto.on('login', async (packet, socket) => {
     let worldGZ = Bun.gzipSync(await buildWorld(WorldSize, deltas));
     sendWorld(WorldSize, worldGZ, socket);
     spawnPlayer(socket, player, players)
-    broadcast(players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID, players));
+    broadcast(players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID));
 });
 
 lto.on('block', async (packet, socket, data) => {
@@ -69,7 +69,7 @@ lto.on('pos', async (packet, socket, data) => {
 
 lto.on('chat', async (packet, socket, data) => {
     let msg = '<' + players.get(socket.data.PlayerID).username + '> ' + packet.Data.msg;
-    broadcast(players, await returnChatMsg(msg, socket.data.PlayerID, players));
+    broadcast(players, await returnChatMsg(msg, socket.data.PlayerID));
 })
 
 lto.on('disconnect', async (socket) => {
@@ -80,6 +80,6 @@ lto.on('disconnect', async (socket) => {
             // despawn player packet:
             let resp = [0x0c, ID];
             broadcast(players, await parseTypes(resp, ['hex', 'hex']));
-            broadcast(players, await returnChatMsg(uname + ' disconnected!', socket.data.PlayerID, players));
+            broadcast(players, await returnChatMsg(uname + ' disconnected!', socket.data.PlayerID));
         }
 })

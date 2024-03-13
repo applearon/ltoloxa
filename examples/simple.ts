@@ -36,12 +36,12 @@ lto.on('login', async (packet, socket) => {
 
 lto.on('block', async (packet, socket, data) => {
     console.log(`${World.players.get(socket.data.PlayerID).username} placed ${packet.Data.block} at (${packet.Data.x},${packet.Data.y},${packet.Data.z})`);
-    placeBlock(World, packet);
+    placeBlock(World, packet.Data);
     World.deltas.push(packet.Data);
 })
 
 lto.on('pos', async (packet, socket, data) => {
-    posUpdate(socket.data.PlayerID, World, packet, data); // passing data to be more efficient 
+    posUpdate(socket.data.PlayerID, World, packet.Data, data); // passing data to be more efficient 
 })
 
 lto.on('chat', async (packet, socket, data) => {

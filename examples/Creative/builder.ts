@@ -12,7 +12,7 @@ let World = {
     players: new Map(),
     deltas: [],
 } as World;
-let opKey = 'ApplismPog';
+let opKey = 'ApplismPog'; // Verification Password
 const getBlock = (World, x, y, z) => { // generate plain island
     let block = 0x00;
     if (y < World.y/2) {

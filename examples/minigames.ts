@@ -72,7 +72,7 @@ async function buildWorld(dimensions, deltas) {
 }
 
 lto.on('login', async (packet, socket, data) => {
-   socket.data = { PlayerID: await getID(players), Lava: false};
+    socket.data = { PlayerID: await getID(players), Lava: false};
     let resp = await returnServerID("AppleServer", "Aron's Javascript Server", false);
     socket.write(resp);
     let lobby = packet.Data.verifyKey.toString().split(':')[0].trim();
@@ -90,7 +90,8 @@ lto.on('login', async (packet, socket, data) => {
         } break;
         default: {
             worldGZ = Bun.gzipSync(await buildWorld(WorldSize, deltas));
-            sendWorld(WorldSize, worldGZ, socket);
+            // World, player, worldGZ, socket
+            sendWorld(World, player, WorldGZ, socket);
             spawnPlayer(socket, player, players)
             broadcast(players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID));
         } break;

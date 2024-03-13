@@ -30,18 +30,23 @@ export async function buildWorld(World, func) {
     return buffer;
 }
 
-export async function placeBlock(World, packet) {
-    let resp = [0x06, packet.Data.x, packet.Data.y, packet.Data.z, packet.Data.block];
+export async function placeBlock(World, data) {
+    let resp = [0x06, data.x, data.y, data.z, data.block];
     broadcast(World.players, await parseTypes(resp, ['hex', 'short', 'short', 'short', 'hex']));
 }
 
 export async function posUpdate(ID, World, packet, data) {
-    let resp = [0x08, ID, data[2], data[3], data[4], data[5], data[6], data[7], packet.Data.yaw, packet.Data.pitch];
+    let resp = [0x08, ID, data[2], data[3], data[4], data[5], data[6], data[7], packet.yaw, packet.pitch];
     broadcast(World.players, await parseTypes(resp, ['hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex']));
 
 }
 
 // WARNING: Don't expose this as a command, as it literally writes to the system
-export async function exportWorld(World, func, file) {
-    await Bun.write(file, buildWorld(World, func));
+export async function exportWorld(World, file) {
+    let buffer = new Uint8Array(World.buf);
+    for (let i = 0; i < World.deltas.length; i++) {
+        buffer[4+(World.deltas[i].y * World.x * World.z) + (World.deltas[i].z * World.x) + World.deltas[i].x] = World.deltas[i].block;
+        //console.log("hi", 4+(World.deltas[i].y * World.x * World.z) + (World.deltas[i].z * World.x) + World.deltas[i].x);
+    }
+    await Bun.write(file, buffer);
 }

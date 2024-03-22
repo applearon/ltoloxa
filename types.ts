@@ -40,7 +40,11 @@ export interface World {
     deltas?: Array<number> | boolean,
     players: Map, 
 }
-
+export interface Entity {
+    name: string,
+    pos: PlayerPos,
+    id: number,
+}
 export async function parseShort(data, begin) {
     // return the number of index begin (inclusive)
     //let byte = data[begin].concat(data[begin+1]);

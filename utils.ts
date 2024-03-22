@@ -1,4 +1,4 @@
-import { parseTypes } from './types.ts';
+import { parseTypes, Entity} from './types.ts';
 import { broadcast } from './socketHelpers.ts';
 export async function returnChatMsg(string, playerID) {
     let pid = 0x0d;
@@ -49,4 +49,10 @@ export async function exportWorld(World, file) {
         //console.log("hi", 4+(World.deltas[i].y * World.x * World.z) + (World.deltas[i].z * World.x) + World.deltas[i].x);
     }
     await Bun.write(file, buffer);
+}
+
+export async function spawnEntity(World, Entity: Entity) {
+    let resp = [0x07, Entity.id, Entity.name, Entity.pos.x, Entity.pos.y, Entity.pos.z, Entity.pos.pitch, Entity.pos.yaw];
+    let respTypes = ['hex', 'hex', 'string', 'FShort', 'FShort', 'FShort', 'hex', 'hex'];
+    broadcast(World.players, await parseTypes(resp, respTypes));
 }

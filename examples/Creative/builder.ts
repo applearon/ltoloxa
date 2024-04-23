@@ -2,7 +2,7 @@
 import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from '../../types.ts';
 import { getID, returnServerID, sendWorld, spawnPlayer } from '../../loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from '../../socketHelpers.ts';
-import { returnChatMsg, buildWorld, placeBlock, posUpdate, exportWorld } from '../../utils.ts';
+import { returnChatMsg, buildWorld, placeBlock, posUpdate, exportWorld, getBlock } from '../../utils.ts';
 import { lto } from '../../index.ts';
 let spawnPos = {x: 32, y: 34, z: 32, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let World = {
@@ -13,7 +13,7 @@ let World = {
     deltas: [],
 } as World;
 let opKey = 'ApplismPog'; // Verification Password
-const getBlock = (World, x, y, z) => { // generate plain island
+const blockAt = (World, x, y, z) => { // generate plain island
     let block = 0x00;
     if (y < World.y/2) {
         block = 0x00;
@@ -41,7 +41,7 @@ lto.on('login', async (packet, socket) => {
     socket.data = { PlayerID: await getID(World.players)};
     let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: (packet.Data.verifyKey == opKey) } as Player;
     World.players.set(socket.data.PlayerID, player);
-    //let worldGZ = Bun.gzipSync(await buildWorld(World, getBlock));
+    //let worldGZ = Bun.gzipSync(await buildWorld(World, blockAt));
     World.buf = await Bun.file("appleWorld").arrayBuffer() 
     let worldGZ = Bun.gzipSync(World.buf);
     sendWorld(World, player, worldGZ, socket);
@@ -50,9 +50,15 @@ lto.on('login', async (packet, socket) => {
 });
 
 lto.on('block', async (packet, socket, data) => {
-    console.log(`${World.players.get(socket.data.PlayerID).username} placed ${packet.Data.block} at (${packet.Data.x},${packet.Data.y},${packet.Data.z})`);
-    placeBlock(World, packet.Data);
-    World.deltas.push(packet.Data);
+    if (World.players.get(socket.data.PlayerID).op) {
+        console.log(`${World.players.get(socket.data.PlayerID).username} placed ${packet.Data.block} at (${packet.Data.x},${packet.Data.y},${packet.Data.z}), replacing ${await getBlock(World, packet.Data.x, packet.Data.y, packet.Data.z)}`);
+        placeBlock(World, packet.Data);
+        World.deltas.push(packet.Data);
+    } else {
+        let old = await getBlock(World, packet.Data.x, packet.Data.y, packet.Data.z);
+        let block = {x: packet.Data.x, y: packet.Data.y, z: packet.Data.z, block: old} as CPlaceBlock;
+        placeBlock(World, block);
+    }
 })
 
 lto.on('pos', async (packet, socket, data) => {

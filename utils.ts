@@ -1,4 +1,4 @@
-import { parseTypes, Entity} from './types.ts';
+import { parseTypes } from './types.ts';
 import { broadcast } from './socketHelpers.ts';
 export async function returnChatMsg(string, playerID) {
     let pid = 0x0d;
@@ -41,6 +41,19 @@ export async function posUpdate(ID, World, packet, data) {
 
 }
 
+export async function getBlock(World, x, y, z) {
+    for (let i = World.deltas.length - 1; i > 0; i--) {
+        let block = World.deltas[i];
+        if (block.x == x && block.y == y && block.z == z) {
+            return block.block;
+        }
+    }
+    let val = 4+(World.x * World.z * y) + (World.x * z) + x;
+    let buf = new Uint8Array(World.buf);
+    return buf[val];
+}
+
+
 // WARNING: Don't expose this as a command, as it literally writes to the system
 export async function exportWorld(World, file) {
     let buffer = new Uint8Array(World.buf);
@@ -49,10 +62,4 @@ export async function exportWorld(World, file) {
         //console.log("hi", 4+(World.deltas[i].y * World.x * World.z) + (World.deltas[i].z * World.x) + World.deltas[i].x);
     }
     await Bun.write(file, buffer);
-}
-
-export async function spawnEntity(World, Entity: Entity) {
-    let resp = [0x07, Entity.id, Entity.name, Entity.pos.x, Entity.pos.y, Entity.pos.z, Entity.pos.pitch, Entity.pos.yaw];
-    let respTypes = ['hex', 'hex', 'string', 'FShort', 'FShort', 'FShort', 'hex', 'hex'];
-    broadcast(World.players, await parseTypes(resp, respTypes));
 }

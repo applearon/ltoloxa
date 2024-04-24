@@ -18,9 +18,9 @@ Bun.listen({
         let packet = await parseClientData(socket, data) as ClientPacket;
         switch (packet.ID) {
             case 0x00: { // login
-                packet.Data as CPlayerID;
-                if (packet.Data.PVersion === 0x07) {
-                    console.log(`${packet.Data.username} attempting to join`);
+                let Pdata = packet.Data as CPlayerID;
+                if (Pdata.PVersion === 0x07) { // Assumes you want only classic v0.30
+                    console.log(`${Pdata.username} attempting to join`);
                     lto.emit('login', packet, socket, data);
                 } else {
                     console.log("Invalid Packet Version, closing connection");
@@ -41,14 +41,6 @@ Bun.listen({
 
             }
         }
-        //let bytes = [0x00, 0x07, 0x20, 0x68,0x69, 0x20,0x20, 0x68, 0x65, 0x6C, 0x6F,0x20,0x00];
-        //let level_init = new Uint8Array([0x02]);
-        //let level_fin_init = new Uint8Array([0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-        //let spawn_player = new Uint8Array([0x07, 0x0f]);
-        //socket.write(new Uint8Array(bytes));
-        //socket.write(level_init);
-        //socket.write(level_fin_init);
-        //socket.write(spawn_player);
     }, // message received from client
     async open(socket) {
         console.log("opened!");

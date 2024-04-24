@@ -1,6 +1,6 @@
-import { parseShort, parseString, parseTypes } from './types.ts';
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from './types.ts';
-import { broadcast } from './socketHelpers.ts';
+import { parseShort, parseString, parseTypes } from 'types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from 'types.ts';
+import { broadcast } from 'socketHelpers.ts';
 import type { Socket } from 'bun';
 
 export async function getID(players: Map<number, Player>) {

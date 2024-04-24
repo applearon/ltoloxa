@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, SocketData } from './types.ts';
-import { parseShort, parseString, parseTypes } from './types.ts';
-import { getID, returnServerID, sendWorld,spawnPlayer } from './loginHelpers.ts';
-import { broadcast, parseClientData } from './socketHelpers.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, SocketData } from 'types.ts';
+import { parseShort, parseString, parseTypes } from 'types.ts';
+import { getID, returnServerID, sendWorld,spawnPlayer } from 'loginHelpers.ts';
+import { broadcast, parseClientData } from 'socketHelpers.ts';
 const EventEmitter = require('node:events');
 class Emitter extends EventEmitter {}
 export const lto = new Emitter();

@@ -1,6 +1,6 @@
-import { parseTypes } from './types.ts';
-import type { World, CSetBlock, PlayerPos, Entity } from './types.ts';
-import { broadcast } from './socketHelpers.ts';
+import { parseTypes } from 'types.ts';
+import type { World, CSetBlock, PlayerPos, Entity } from 'types.ts';
+import { broadcast } from 'socketHelpers.ts';
 import type { BunFile } from 'bun';
 export async function returnChatMsg(string: string, playerID: number) {
     let pid = 0x0d;

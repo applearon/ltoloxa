@@ -1,6 +1,6 @@
 import type { Socket } from 'bun';
-import { parseShort, parseString, parseTypes } from './types.ts';
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from './types.ts';
+import { parseShort, parseString, parseTypes } from 'types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from 'types.ts';
 
 export async function broadcast(players: Map<number, Player>, data: Uint8Array, exclude:false|Array<number> = false) {
     for (let [key, value] of players) {

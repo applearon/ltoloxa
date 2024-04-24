@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
-import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from '../types.ts';
+import { parseShort, parseString, parseTypes } from '../types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from '../types.ts';
 import { getID, returnServerID, sendWorld, spawnPlayer } from '../loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from '../socketHelpers.ts';
 import { returnChatMsg, buildWorld, placeBlock, posUpdate, teleport } from '../utils.ts';
@@ -25,7 +26,7 @@ const getBlock = (World, x, y, z) => {
 }
 
 lto.on('login', async (packet, socket) => {
-    socket.data = { PlayerID: await getID(World.players)};
+    socket.data = { PlayerID: await getID(World.players)} as SocketData;
     let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: false} as Player;
     World.players.set(socket.data.PlayerID, player);
     let worldGZ = Bun.gzipSync(await buildWorld(World, getBlock));

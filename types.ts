@@ -1,3 +1,7 @@
+import type { Socket } from "bun";
+export interface SocketData {
+    PlayerID: number,
+}
 export interface ClientPacket {
     ID: number,
     Data: CPlayerID & CMsg & CSetBlock & PlayerPos,
@@ -42,14 +46,14 @@ export interface World {
     motd: string,
     buffer?: Buffer,
     deltas?: Array<number> | boolean,
-    players: Map, 
+    players: Map<number, Player>, 
 }
 export interface Entity {
     name: string,
     pos: PlayerPos,
     id: number,
 }
-export async function parseShort(data, begin) {
+export async function parseShort(data, begin: number) {
     // return the number of index begin (inclusive)
     //let byte = data[begin].concat(data[begin+1]);
     //let num = parseInt(byte, 16);
@@ -57,7 +61,7 @@ export async function parseShort(data, begin) {
     return 256*data[begin]+data[begin+1];
 }
 
-export async function parseString(data, begin) {
+export async function parseString(data, begin: number) {
     // returns the string of index begin(inclusive)
     let str = '';
     for (let i=begin; i < begin+64; i++) {

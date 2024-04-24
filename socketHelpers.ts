@@ -1,7 +1,7 @@
 import { parseShort, parseString, parseTypes } from './types.ts';
 import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player } from './types.ts';
 
-export async function broadcast(players, data, exclude = false) {
+export async function broadcast(players, data, exclude:boolean|Array<number> = false) {
     for (let [key, value] of players) {
         if (exclude === false) {
         value.socket.write(data);

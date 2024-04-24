@@ -1,8 +1,9 @@
 import { parseShort, parseString, parseTypes } from './types.ts';
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player } from './types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from './types.ts';
 import { broadcast } from './socketHelpers.ts';
+import type { Socket } from 'bun';
 
-export async function getID(players) {
+export async function getID(players: Map<number, Player>) {
     let vals = [...Array(128).keys()];; // 0->127
     let id = 0;
     for (let [key, val] of players) {
@@ -24,7 +25,7 @@ export async function getID(players) {
     return id;
 }
 
-export async function returnServerID(name, motd, isOp: bool) {
+export async function returnServerID(name: string, motd: string, isOp: boolean) {
     let pid = 0x00;
     let PVersion = 0x07;
     let serverName = new TextEncoder().encode(name);
@@ -35,7 +36,7 @@ export async function returnServerID(name, motd, isOp: bool) {
     
 }
 
-export async function sendWorld(World, player, worldGZ, socket) {
+export async function sendWorld(World: World, player: Player, worldGZ: Uint8Array, socket: Socket) {
     let resp = await returnServerID(World.name, World.motd, player.op);
     socket.write(resp);
     socket.write(new Uint8Array([0x02]));
@@ -83,16 +84,18 @@ export async function sendWorld(World, player, worldGZ, socket) {
     socket.write(await parseTypes([0x04, World.x, World.y, World.z], ['hex', 'short', 'short', 'short']));
 }
 
-export async function spawnPlayer(socket, player, players) {
-    let resp = [0x07, socket.data.PlayerID, player.username, player.Position.x, player.Position.y, player.Position.Z, player.Position.yaw, player.Position.pitch];
+export async function spawnPlayer(socket: Socket, player: Player, players: Map<number, Player>) {
+    if (socket.data === undefined) { return; };
+    let data = socket.data as SocketData;
+    let resp = [0x07, data.PlayerID, player.username, player.Position.x, player.Position.y, player.Position.z, player.Position.yaw, player.Position.pitch];
     let respTypes = ['hex', 'hex', 'string', 'FShort', 'FShort', 'FShort', 'hex', 'hex'];
-    broadcast(players, await parseTypes(resp, respTypes), [socket.data.PlayerID]);
+    broadcast(players, await parseTypes(resp, respTypes), [data.PlayerID]);
     resp[1] = 0xFF;
     socket.write(await parseTypes(resp, respTypes));
     socket.write(await parseTypes([0x08, 0xFF, player.Position.x, player.Position.y, player.Position.z, player.Position.yaw, player.Position.pitch ], ['hex', 'hex', 'FShort', 'FShort', 'FShort', 'hex', 'hex'])); 
     // we inform client of players currently online
     for (let [key, value] of players) {
-    if (key == socket.data.PlayerID) {
+    if (key == data.PlayerID) {
         continue;
     }
         let resp = [0x07, key, value.username, value.Position.x, value.Position.y, value.Position.z, value.Position.yaw, value.Position.pitch];

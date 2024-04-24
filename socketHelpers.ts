@@ -1,7 +1,8 @@
+import type { Socket } from 'bun';
 import { parseShort, parseString, parseTypes } from './types.ts';
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player } from './types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World } from './types.ts';
 
-export async function broadcast(players, data, exclude:boolean|Array<number> = false) {
+export async function broadcast(players: Map<number, Player>, data: Uint8Array, exclude:false|Array<number> = false) {
     for (let [key, value] of players) {
         if (exclude === false) {
         value.socket.write(data);
@@ -11,7 +12,7 @@ export async function broadcast(players, data, exclude:boolean|Array<number> = f
     }
 }
 
-export async function parseClientData(socket, data) {
+export async function parseClientData(socket: Socket, data: Uint8Array) {
     let packetdata = {} as ClientPacket;
     const pid = data[0];
     packetdata.ID = pid;
@@ -64,6 +65,6 @@ export async function parseClientData(socket, data) {
     return packetdata
 };
 
-export async function despawnPlayer(ID, World) {
+export async function despawnPlayer(ID: number, World: World) {
     broadcast(World.players, await parseTypes([0x0c, ID], ['hex', 'hex']));
 }

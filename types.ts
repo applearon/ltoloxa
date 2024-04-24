@@ -4,7 +4,7 @@ export interface SocketData {
 }
 export interface ClientPacket {
     ID: number,
-    Data: CPlayerID & CMsg & CSetBlock & PlayerPos,
+    Data: CPlayerID | CMsg | CSetBlock  | PlayerPos,
 }
 export interface CPlayerID {
     PVersion: number,
@@ -31,6 +31,7 @@ export interface PlayerPos {
 export interface Entity {
     username: string,
     Position: PlayerPos,
+    ID: number,
 }
 export interface Player {
     username: string,
@@ -44,8 +45,8 @@ export interface World {
     z: number,
     name: string,
     motd: string,
-    buffer?: Buffer,
-    deltas?: Array<number> | boolean,
+    buffer: Buffer,
+    deltas?: Array<CSetBlock> | false,
     players: Map<number, Player>, 
 }
 export interface Entity {
@@ -53,7 +54,7 @@ export interface Entity {
     pos: PlayerPos,
     id: number,
 }
-export async function parseShort(data, begin: number) {
+export async function parseShort(data: Uint8Array, begin: number) {
     // return the number of index begin (inclusive)
     //let byte = data[begin].concat(data[begin+1]);
     //let num = parseInt(byte, 16);
@@ -61,7 +62,7 @@ export async function parseShort(data, begin: number) {
     return 256*data[begin]+data[begin+1];
 }
 
-export async function parseString(data, begin: number) {
+export async function parseString(data: Uint8Array, begin: number) {
     // returns the string of index begin(inclusive)
     let str = '';
     for (let i=begin; i < begin+64; i++) {
@@ -71,7 +72,7 @@ export async function parseString(data, begin: number) {
     return str.trimEnd();
 }
 
-export async function parseTypes(items, types) {
+export async function parseTypes(items: Array<any>, types: Array<string>) {
     // items: array of any
     let out = [];
     for (const item in items) {

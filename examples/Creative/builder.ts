@@ -42,8 +42,8 @@ lto.on('login', async (packet, socket) => {
     let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: (packet.Data.verifyKey == opKey) } as Player;
     World.players.set(socket.data.PlayerID, player);
     //let worldGZ = Bun.gzipSync(await buildWorld(World, blockAt));
-    World.buf = await Bun.file("appleWorld").arrayBuffer() 
-    let worldGZ = Bun.gzipSync(World.buf);
+    World.buffer = await Bun.file("appleWorld").arrayBuffer() 
+    let worldGZ = Bun.gzipSync(World.buffer);
     sendWorld(World, player, worldGZ, socket);
     spawnPlayer(socket, player, World.players);
     broadcast(World.players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID));

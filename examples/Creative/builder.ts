@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
-import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from '../../types.ts';
+import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes, World } from '../../types.ts';
 import { getID, returnServerID, sendWorld, spawnPlayer } from '../../loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from '../../socketHelpers.ts';
-import { returnChatMsg, buildWorld, placeBlock, posUpdate, exportWorld, getBlock } from '../../utils.ts';
+import { returnChatMsg, buildWorld, placeBlock, posUpdate, exportWorld, getBlock, updateDeltas } from '../../utils.ts';
 import { lto } from '../../index.ts';
 let spawnPos = {x: 32, y: 34, z: 32, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let World = {
@@ -42,7 +42,9 @@ lto.on('login', async (packet, socket) => {
     let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: (packet.Data.verifyKey == opKey) } as Player;
     World.players.set(socket.data.PlayerID, player);
     //let worldGZ = Bun.gzipSync(await buildWorld(World, blockAt));
-    World.buffer = await Bun.file("appleWorld").arrayBuffer() 
+    let buffer = new Uint8Array(await Bun.file("appleWorld").arrayBuffer());
+    updateDeltas(World, buffer);
+    World.buffer = new Buffer(buffer);
     let worldGZ = Bun.gzipSync(World.buffer);
     sendWorld(World, player, worldGZ, socket);
     spawnPlayer(socket, player, World.players);

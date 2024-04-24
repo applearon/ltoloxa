@@ -25,12 +25,18 @@ export async function buildWorld(World: World, func: Function) {
             }
         }
     }
-    if (World.deltas) {
-        for (let i = 0; i < World.deltas.length; i++) {
-            buffer[4+(World.deltas[i].y * lx * lz) + (World.deltas[i].z * lx) + World.deltas[i].x] = World.deltas[i].block;
-        }
-    }
+    updateDeltas(World, buffer);
     return buffer;
+}
+
+export async function updateDeltas(World: World, buffer: Uint8Array) {
+    if (!World.deltas) return; // if deltas are not tracked don't do anything
+    for (let i = 0; i < World.deltas.length; i++) {
+        let d = World.deltas[i];
+        let pos = 4+(d.y * World.x * World.z)+(d.z * World.x)+d.x;
+        buffer[pos] = d.block;
+    }
+    // don't have to return buffer since it's pass by reference
 }
 
 export async function placeBlock(World: World, data: CSetBlock) {

@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
-import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes, World } from '../../types.ts';
+import type { Socket } from 'bun';
+import { parseShort, parseString, parseTypes } from '../../types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from '../../types.ts';
 import { getID, returnServerID, sendWorld, spawnPlayer } from '../../loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from '../../socketHelpers.ts';
 import { returnChatMsg, buildWorld, placeBlock, posUpdate, exportWorld, getBlock, updateDeltas } from '../../utils.ts';
@@ -12,8 +14,8 @@ let World = {
     players: new Map(),
     deltas: [],
 } as World;
-let opKey = 'ApplismPog'; // Verification Password
-const blockAt = (World, x, y, z) => { // generate plain island
+let opKey = 'ILoveApplism'; // Verification Password
+const blockAt = (World: World, x: number, y: number, z: number) => { // generate plain island
     let block = 0x00;
     if (y < World.y/2) {
         block = 0x00;
@@ -37,9 +39,10 @@ const blockAt = (World, x, y, z) => { // generate plain island
     return block;
 }
 
-lto.on('login', async (packet, socket) => {
+lto.on('login', async (packet: ClientPacket, socket: Socket<SocketData>) => {
     socket.data = { PlayerID: await getID(World.players)};
-    let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: (packet.Data.verifyKey == opKey) } as Player;
+    let pData = packet.Data as CPlayerID;
+    let player = {username: pData.username, Position: spawnPos, socket: socket, op: (pData.verifyKey == opKey) } as Player;
     World.players.set(socket.data.PlayerID, player);
     //let worldGZ = Bun.gzipSync(await buildWorld(World, blockAt));
     let buffer = new Uint8Array(await Bun.file("appleWorld").arrayBuffer());
@@ -48,33 +51,36 @@ lto.on('login', async (packet, socket) => {
     let worldGZ = Bun.gzipSync(World.buffer);
     sendWorld(World, player, worldGZ, socket);
     spawnPlayer(socket, player, World.players);
-    broadcast(World.players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID));
+    broadcast(World.players, await returnChatMsg(pData.username + ' has joined!', socket.data.PlayerID));
 });
 
-lto.on('block', async (packet, socket, data) => {
-    if (World.players.get(socket.data.PlayerID).op) {
-        console.log(`${World.players.get(socket.data.PlayerID).username} placed ${packet.Data.block} at (${packet.Data.x},${packet.Data.y},${packet.Data.z}), replacing ${await getBlock(World, packet.Data.x, packet.Data.y, packet.Data.z)}`);
-        placeBlock(World, packet.Data);
-        World.deltas.push(packet.Data);
+lto.on('block', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+    let pData = packet.Data as CSetBlock;
+    if (World.players.get(socket.data.PlayerID)!.op) {
+        console.log(`${World.players.get(socket.data.PlayerID)!.username} placed ${pData.block} at (${pData.x},${pData.y},${pData.z}), replacing ${await getBlock(World, pData.x, pData.y, pData.z)}`);
+        placeBlock(World, pData);
+        if (!World.deltas) return;
+        World.deltas.push(pData);
     } else {
-        let old = await getBlock(World, packet.Data.x, packet.Data.y, packet.Data.z);
-        let block = {x: packet.Data.x, y: packet.Data.y, z: packet.Data.z, block: old} as CPlaceBlock;
+        let old = await getBlock(World, pData.x, pData.y, pData.z);
+        let block = {x: pData.x, y: pData.y, z: pData.z, block: old} as CSetBlock;
         placeBlock(World, block);
     }
 })
 
-lto.on('pos', async (packet, socket, data) => {
-    posUpdate(socket.data.PlayerID, World, packet.Data, data); // passing data to be more efficient 
+lto.on('pos', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+    posUpdate(socket.data.PlayerID, World, packet.Data as PlayerPos); // passing data to be more efficient 
 })
 
-lto.on('chat', async (packet, socket, data) => {
+lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
     let player = World.players.get(socket.data.PlayerID);
-    let txt = packet.Data.msg.toString().split(' ');
-    if (packet.Data.msg.indexOf("/") === 0) {
+    let pData = packet.Data as CMsg;
+    let txt = pData.msg.toString().split(' ');
+    if (pData.msg.indexOf("/") === 0) {
         let cmd = txt.shift();
         switch (cmd) {
             case "/export": {
-                if (player.op) {
+                if (player!.op) {
                     const out = Bun.file('./appleWorld');
                     await exportWorld(World, out);
                     socket.write(await returnChatMsg("Exported world!", socket.data.PlayerID));
@@ -83,7 +89,7 @@ lto.on('chat', async (packet, socket, data) => {
                 }
             } break;
             case "/fill": {
-                if (player.op) {
+                if (player!.op) {
                 if (txt.length === 7) {
                     let p1 = [parseInt(txt[0]), parseInt(txt[1]), parseInt(txt[2])];
                     let p2 = [parseInt(txt[3]), parseInt(txt[4]), parseInt(txt[5])];
@@ -91,10 +97,12 @@ lto.on('chat', async (packet, socket, data) => {
                     for (let x = p1[0]; x <= p2[0]; x++) {
                         for (let y = p1[1]; y <= p2[1]; y++) {
                             for (let z = p1[2]; z <= p2[2]; z++) {
-                                let placePacket = {x: x, y: y, z:z, block: txt[6]} as CSetBlock;
+                                let placePacket = {x: x, y: y, z:z, block: parseInt(txt[6])} as CSetBlock;
                                 placeBlock(World, placePacket);
-                                World.deltas.push(placePacket);
-                                //console.log(`Placing at ${x}x${y}${z}`);
+                                if (World.deltas) {
+                                    World.deltas.push(placePacket);
+                                }
+                            //console.log(`Placing at ${x}x${y}${z}`);
                             }
                         }
                     }
@@ -110,15 +118,15 @@ lto.on('chat', async (packet, socket, data) => {
             }
         }
     } else {
-        let msg = '<' + World.players.get(socket.data.PlayerID).username + '> ' + packet.Data.msg;
+        let msg = '<' + World.players.get(socket.data.PlayerID)!.username + '> ' + pData.msg;
         broadcast(World.players, await returnChatMsg(msg, socket.data.PlayerID));
     }
 })
 
-lto.on('disconnect', async (socket) => {
+lto.on('disconnect', async (socket: Socket<SocketData>) => {
         if (socket.data !== undefined) {
             let ID = socket.data.PlayerID;
-            let uname = World.players.get(ID).username;
+            let uname = World.players.get(ID)!.username;
             World.players.delete(ID);
             // despawn player packet:
             despawnPlayer(ID, World);

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
-import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from '../types.ts';
-import { getID, returnServerID, sendWorld,spawnPlayer, spawnPlayer } from '../loginHelpers.ts';
+import { parseShort, parseString, parseTypes } from '../types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player } from '../types.ts';
+import { getID, returnServerID, sendWorld,spawnPlayer } from '../loginHelpers.ts';
 import { returnChatMsg } from '../utils.ts';
 import { broadcast, parseClientData } from '../socketHelpers.ts';
 import { lto } from '../index.ts';

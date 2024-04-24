@@ -69,3 +69,23 @@ export async function exportWorld(World, file) {
     }
     await Bun.write(file, buffer);
 }
+
+
+export async function spawnEntity(World, Entity: Entity) {
+    let resp = [0x07, socket.data.PlayerID, player.username, player.Position.x, player.Position.y, player.Position.Z, player.Position.yaw, player.Position.pitch];
+    let respTypes = ['hex', 'hex', 'string', 'FShort', 'FShort', 'FShort', 'hex', 'hex'];
+    broadcast(players, await parseTypes(resp, respTypes), [socket.data.PlayerID]);
+    resp[1] = 0xFF;
+    socket.write(await parseTypes(resp, respTypes));
+    socket.write(await parseTypes([0x08, 0xFF, player.Position.x, player.Position.y, player.Position.z, player.Position.yaw, player.Position.pitch ], ['hex', 'hex', 'FShort', 'FShort', 'FShort', 'hex', 'hex'])); 
+    // we inform client of players currently online
+    for (let [key, value] of players) {
+    if (key == socket.data.PlayerID) {
+        continue;
+    }
+        let resp = [0x07, key, value.username, value.Position.x, value.Position.y, value.Position.z, value.Position.yaw, value.Position.pitch];
+        socket.write(await parseTypes(resp, respTypes));
+    }
+
+}
+

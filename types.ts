@@ -24,6 +24,10 @@ export interface PlayerPos {
     yaw: number,
     pitch: number,
 }
+export interface Entity {
+    username: string,
+    Position: PlayerPos,
+}
 export interface Player {
     username: string,
     Position: PlayerPos,

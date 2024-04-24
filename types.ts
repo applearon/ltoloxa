@@ -36,7 +36,7 @@ export interface Entity {
 export interface Player {
     username: string,
     Position: PlayerPos,
-    socket: Socket,
+    socket: Socket<SocketData>,
     op: boolean,
 }
 export interface World {
@@ -98,8 +98,6 @@ export async function parseTypes(items: Array<any>, types: Array<string>) {
             } break;
             case 'short': {
                 let str = items[item].toString(16).padStart(4, "0").match(/.{2}/g);
-                //console.log(items[item].toString(16).padStart(4, "0").match(/.{2}/g));
-                //console.log(parseInt(str[0], 16), parseInt(str[1], 16));
                 out.push(parseInt(str[0], 16));
                 out.push(parseInt(str[1], 16));
             } break;
@@ -109,7 +107,6 @@ export async function parseTypes(items: Array<any>, types: Array<string>) {
                 let str = num.toString(16).padStart(4, '0'); 
                 let b1 = str.substring(0,2);
                 let b2 = str.substring(2);
-                // THERE IS A PROBLEM HERE
                 //console.log(b1, b2);
                 out.push(parseInt(b1, 16));
                 out.push(parseInt(b2, 16));

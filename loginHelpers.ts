@@ -36,7 +36,7 @@ export async function returnServerID(name: string, motd: string, isOp: boolean) 
     
 }
 
-export async function sendWorld(World: World, player: Player, worldGZ: Uint8Array, socket: Socket) {
+export async function sendWorld(World: World, player: Player, worldGZ: Uint8Array, socket: Socket<SocketData>) {
     let resp = await returnServerID(World.name, World.motd, player.op);
     socket.write(resp);
     socket.write(new Uint8Array([0x02]));
@@ -84,7 +84,7 @@ export async function sendWorld(World: World, player: Player, worldGZ: Uint8Arra
     socket.write(await parseTypes([0x04, World.x, World.y, World.z], ['hex', 'short', 'short', 'short']));
 }
 
-export async function spawnPlayer(socket: Socket, player: Player, players: Map<number, Player>) {
+export async function spawnPlayer(socket: Socket<SocketData>, player: Player, players: Map<number, Player>) {
     if (socket.data === undefined) { return; };
     let data = socket.data as SocketData;
     let resp = [0x07, data.PlayerID, player.username, player.Position.x, player.Position.y, player.Position.z, player.Position.yaw, player.Position.pitch];

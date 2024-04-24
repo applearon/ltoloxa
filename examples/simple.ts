@@ -12,7 +12,7 @@ let World = {
     name: "ltoloxA Server",
     motd: "Simple ltoloxA Server",
     players: new Map(),
-    deltas: [],
+    deltas: [] as CSetBlock[],
 } as World;
 const getBlock = (World: World, x: number, y: number, z: number) => {
     let block = 0x00;
@@ -26,49 +26,54 @@ const getBlock = (World: World, x: number, y: number, z: number) => {
     return block;
 }
 
-lto.on('login', async (packet: ClientPacket, socket: Socket) => {
+lto.on('login', async (packet: ClientPacket, socket: Socket<SocketData>) => {
     socket.data = { PlayerID: await getID(World.players)} as SocketData;
-    let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: false} as Player;
+    let data = packet.Data as CPlayerID;
+    let player = {username: data.username, Position: spawnPos, socket: socket, op: false} as Player;
     World.players.set(socket.data.PlayerID, player);
     let worldGZ = Bun.gzipSync(await buildWorld(World, getBlock));
     sendWorld(World, player, worldGZ, socket);
     spawnPlayer(socket, player, World.players);
-    broadcast(World.players, await returnChatMsg(packet.Data.username + ' has joined!', socket.data.PlayerID));
+    broadcast(World.players, await returnChatMsg(data.username + ' has joined!', socket.data.PlayerID));
 });
 
-lto.on('block', async (packet, socket, data) => {
-    console.log(`${World.players.get(socket.data.PlayerID).username} placed ${packet.Data.block} at (${packet.Data.x},${packet.Data.y},${packet.Data.z})`);
-    placeBlock(World, packet.Data);
-    World.deltas.push(packet.Data);
+lto.on('block', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+    let pData = packet.Data as CSetBlock;
+    console.log(`${World.players.get(socket.data.PlayerID)!.username} placed ${pData.block} at (${pData.x},${pData.y},${pData.z})`);
+    placeBlock(World, pData);
+    if (! World.deltas) {return};
+    World.deltas.push(pData);
 })
 
-lto.on('pos', async (packet, socket, data) => {
-    posUpdate(socket.data.PlayerID, World, packet.Data);
-    World.players.get(socket.data.PlayerID).Position = packet.Data;
+lto.on('pos', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+    let pData = packet.Data as PlayerPos;
+    posUpdate(socket.data.PlayerID, World, pData);
+    World.players.get(socket.data.PlayerID)!.Position = pData;
 })
 
-lto.on('chat', async (packet, socket, data) => {
+lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
     let Player = World.players.get(socket.data.PlayerID);
-    let msg = '<' + Player.username + '> ' + packet.Data.msg;
-    switch(packet.Data.msg.split(" ")[0]) {
+    let pData = packet.Data as CMsg;
+    let msg = '<' + Player!.username + '> ' + pData.msg;
+    switch(pData.msg.split(" ")[0]) {
         case "/pos": {
             socket.write(await returnChatMsg("================", socket.data.PlayerID));
-            socket.write(await returnChatMsg("x: " + Player.Position.x, socket.data.PlayerID));
-            socket.write(await returnChatMsg("y: " + Player.Position.y, socket.data.PlayerID));
-            socket.write(await returnChatMsg("z: " + Player.Position.z, socket.data.PlayerID));
-            socket.write(await returnChatMsg("Yaw: " + Player.Position.yaw, socket.data.PlayerID));
-            socket.write(await returnChatMsg("Pitch: " + Player.Position.pitch, socket.data.PlayerID));
+            socket.write(await returnChatMsg("x: " + Player!.Position.x, socket.data.PlayerID));
+            socket.write(await returnChatMsg("y: " + Player!.Position.y, socket.data.PlayerID));
+            socket.write(await returnChatMsg("z: " + Player!.Position.z, socket.data.PlayerID));
+            socket.write(await returnChatMsg("Yaw: " + Player!.Position.yaw, socket.data.PlayerID));
+            socket.write(await returnChatMsg("Pitch: " + Player!.Position.pitch, socket.data.PlayerID));
             socket.write(await returnChatMsg("================", socket.data.PlayerID));
         } break;
         case "/tp": {
-            let msg = packet.Data.msg.split(" ");
-            if (msg.length != 4 || isNaN(msg[1]) || isNaN(msg[2]) || isNaN(msg[3])) {
+            let msg = pData.msg.split(" ");
+            if (msg.length != 4 || isNaN(Number(msg[1])) || isNaN(Number(msg[2])) || isNaN(Number(msg[3]))) {
                 socket.write(await returnChatMsg("Usage: /tp x y z", socket.data.PlayerID));
             } else {
-                Player.Position.x = Number(msg[1]);
-                Player.Position.y = Number(msg[2]);
-                Player.Position.z = Number(msg[3]);
-                teleport(socket.data.PlayerID, World, Player.Position);
+                Player!.Position.x = Number(msg[1]);
+                Player!.Position.y = Number(msg[2]);
+                Player!.Position.z = Number(msg[3]);
+                teleport(socket.data.PlayerID, World, Player!.Position);
 
             }
         } break;
@@ -78,10 +83,10 @@ lto.on('chat', async (packet, socket, data) => {
     }
 })
 
-lto.on('disconnect', async (socket) => {
+lto.on('disconnect', async (socket: Socket<SocketData>) => {
         if (socket.data !== undefined) {
             let ID = socket.data.PlayerID;
-            let uname = World.players.get(ID).username;
+            let uname = World.players.get(ID)!.username;
             World.players.delete(ID);
             // despawn player packet:
             despawnPlayer(ID, World);

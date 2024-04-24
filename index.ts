@@ -1,14 +1,13 @@
 #!/usr/bin/env bun
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player } from './types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, SocketData } from './types.ts';
 import { parseShort, parseString, parseTypes } from './types.ts';
 import { getID, returnServerID, sendWorld,spawnPlayer } from './loginHelpers.ts';
 import { broadcast, parseClientData } from './socketHelpers.ts';
-
 const EventEmitter = require('node:events');
 class Emitter extends EventEmitter {}
 export const lto = new Emitter();
 
-Bun.listen({
+Bun.listen<SocketData>({
   hostname: "0.0.0.0",
   port: 25565,
   socket: {
@@ -44,6 +43,7 @@ Bun.listen({
     }, // message received from client
     async open(socket) {
         console.log("opened!");
+        socket.data = {PlayerID: 0} as SocketData;
         //socket.data = { PlayerID: await getID(players)};
     }, // socket opened
     async close(socket) {

@@ -5,6 +5,7 @@ import { getID, returnServerID, sendWorld, spawnPlayer } from '../loginHelpers.t
 import { broadcast, parseClientData, despawnPlayer } from '../socketHelpers.ts';
 import { returnChatMsg, buildWorld, placeBlock, posUpdate, teleport } from '../utils.ts';
 import { lto } from '../index.ts';
+import type { Socket } from 'bun';
 let spawnPos = {x: 256, y: 40, z: 256, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let World = {
     x: 512, y: 64, z: 512,
@@ -13,7 +14,7 @@ let World = {
     players: new Map(),
     deltas: [],
 } as World;
-const getBlock = (World, x, y, z) => {
+const getBlock = (World: World, x: number, y: number, z: number) => {
     let block = 0x00;
     if (y < World.y/2) {
         block = 0x01;
@@ -25,7 +26,7 @@ const getBlock = (World, x, y, z) => {
     return block;
 }
 
-lto.on('login', async (packet, socket) => {
+lto.on('login', async (packet: ClientPacket, socket: Socket) => {
     socket.data = { PlayerID: await getID(World.players)} as SocketData;
     let player = {username: packet.Data.username, Position: spawnPos, socket: socket, op: false} as Player;
     World.players.set(socket.data.PlayerID, player);

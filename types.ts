@@ -45,7 +45,7 @@ export interface World {
     z: number,
     name: string,
     motd: string,
-    buffer: Buffer,
+    buffer?: Buffer,
     deltas?: Array<CSetBlock> | false,
     players: Map<number, Player>, 
 }

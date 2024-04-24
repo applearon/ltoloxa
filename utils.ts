@@ -66,13 +66,21 @@ export async function getBlock(World: World, x: number, y: number, z: number) {
         }
     }
     let val = 4+(World.x * World.z * y) + (World.x * z) + x;
-    let buf = new Uint8Array(World.buffer);
-    return buf[val];
+    if (World.buffer) {
+        return World.buffer[val];
+    } else {
+        console.error("ERROR: World.buffer does not exist, returning air");
+        return 0; // if panic return air
+    }
 }
 
 
 // WARNING: Don't expose this as a command, as it literally writes to the system
 export async function exportWorld(World: World, file: BunFile) {
+    if (!World.buffer) {
+        console.log("World.buffer does not exist, exiting");
+        return;
+    }
     let buffer = new Uint8Array(World.buffer);
     if (World.deltas) {
         for (let i = 0; i < World.deltas.length; i++) {

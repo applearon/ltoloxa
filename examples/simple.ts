@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
-import { parseShort, parseString, parseTypes } from '../types.ts';
-import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from '../types.ts';
-import { getID, returnServerID, sendWorld, spawnPlayer } from '../loginHelpers.ts';
-import { broadcast, parseClientData, despawnPlayer } from '../socketHelpers.ts';
-import { returnChatMsg, buildWorld, placeBlock, posUpdate, teleport } from '../utils.ts';
-import { lto } from '../index.ts';
+import { parseShort, parseString, parseTypes } from 'types.ts';
+import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from 'types.ts';
+import { getID, returnServerID, sendWorld, spawnPlayer } from 'loginHelpers.ts';
+import { broadcast, parseClientData, despawnPlayer } from 'socketHelpers.ts';
+import { returnChatMsg, buildWorld, placeBlock, posUpdate, teleport } from 'utils.ts';
+import { lto } from 'index.ts';
 import type { Socket } from 'bun';
 let spawnPos = {x: 256, y: 40, z: 256, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let World = {

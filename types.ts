@@ -62,15 +62,6 @@ export async function parseString(data, begin) {
     }
     return str.trimEnd();
 }
-export async function parseString(data, begin) {
-    // returns the string of index begin(inclusive)
-    let str = '';
-    for (let i=begin; i < begin+64; i++) {
-        //console.log(data[i]);
-        str = str.concat(String.fromCharCode(data[i]));
-    }
-    return str.trimEnd();
-}
 
 export async function parseTypes(items, types) {
     // items: array of any
@@ -105,7 +96,7 @@ export async function parseTypes(items, types) {
             } break;
             case 'FShort': {
                 //out.push(items[item]);
-                let num = Math.floor(items[item]* (2**5));
+                let num = Math.round(items[item]* (2**5));
                 let str = num.toString(16).padStart(4, '0'); 
                 let b1 = str.substring(0,2);
                 let b2 = str.substring(2);

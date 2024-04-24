@@ -48,9 +48,9 @@ export async function parseClientData(socket, data) {
         } break;
         case 0x08: {
             // movement
-            const x = await parseShort(data, 2);
-            const y = await parseShort(data, 4);
-            const z = await parseShort(data, 6);
+            const x = await parseShort(data, 2)/32;
+            const y = await parseShort(data, 4)/32;
+            const z = await parseShort(data, 6)/32;
             const yaw = data[8];
             const pitch = data[9];
             packetdata.Data = {x: x, y: y, z: z, yaw: yaw, pitch: pitch} as PlayerPos;

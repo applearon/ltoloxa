@@ -35,10 +35,16 @@ export async function placeBlock(World, data) {
     broadcast(World.players, await parseTypes(resp, ['hex', 'short', 'short', 'short', 'hex']));
 }
 
-export async function posUpdate(ID, World, packet, data) {
-    let resp = [0x08, ID, data[2], data[3], data[4], data[5], data[6], data[7], packet.yaw, packet.pitch];
-    broadcast(World.players, await parseTypes(resp, ['hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex', 'hex']));
+export async function posUpdate(ID, World, packet) {
+    let resp = [0x08, ID, packet.x, packet.y, packet.z, packet.yaw, packet.pitch];
+    broadcast(World.players, await parseTypes(resp, ['hex', 'hex', 'FShort', 'FShort', 'FShort', 'hex', 'hex']), [ID]);
 
+}
+export async function teleport(ID, World, pos) {
+    let resp = [0x08, ID, pos.x, pos.y, pos.z, pos.yaw, pos.pitch];
+    broadcast(World.players, await parseTypes(resp, ['hex', 'hex', 'FShort', 'FShort', 'FShort', 'hex', 'hex']), [ID]);
+    resp[1] = 255;
+    World.players.get(ID).socket.write(await parseTypes(resp, ['hex', 'hex', 'FShort', 'FShort', 'FShort', 'hex', 'hex']));
 }
 
 export async function getBlock(World, x, y, z) {

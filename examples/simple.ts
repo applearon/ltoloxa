@@ -84,7 +84,7 @@ lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Ui
 })
 
 lto.on('disconnect', async (socket: Socket<SocketData>) => {
-        if (socket.data !== undefined) {
+        if (socket.data.PlayerID !== -1) {
             let ID = socket.data.PlayerID;
             let uname = World.players.get(ID)!.username;
             World.players.delete(ID);

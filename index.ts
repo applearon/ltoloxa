@@ -43,7 +43,7 @@ Bun.listen<SocketData>({
     }, // message received from client
     async open(socket) {
         console.log("opened!");
-        socket.data = {PlayerID: 0} as SocketData;
+        socket.data = {PlayerID: -1} as SocketData;
         //socket.data = { PlayerID: await getID(players)};
     }, // socket opened
     async close(socket) {

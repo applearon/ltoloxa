@@ -4,7 +4,7 @@ import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World
 import { getID, returnServerID, sendWorld, spawnPlayer } from 'loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from 'socketHelpers.ts';
 import { returnChatMsg, buildWorld, placeBlock, posUpdate, teleport } from 'utils.ts';
-import { lto } from 'index.ts';
+import { Server } from 'index.ts';
 import type { Socket } from 'bun';
 let spawnPos = {x: 256, y: 40, z: 256, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let World = {
@@ -26,7 +26,7 @@ const getBlock = (World: World, x: number, y: number, z: number) => {
     return block;
 }
 
-lto.on('login', async (packet: ClientPacket, socket: Socket<SocketData>) => {
+async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
     socket.data = { PlayerID: await getID(World.players)} as SocketData;
     let data = packet.Data as CPlayerID;
     let player = {username: data.username, Position: spawnPos, socket: socket, op: false} as Player;
@@ -35,23 +35,23 @@ lto.on('login', async (packet: ClientPacket, socket: Socket<SocketData>) => {
     sendWorld(World, player, worldGZ, socket);
     spawnPlayer(socket, player, World.players);
     broadcast(World.players, await returnChatMsg(data.username + ' has joined!', socket.data.PlayerID));
-});
+};
 
-lto.on('block', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
     let pData = packet.Data as CSetBlock;
     console.log(`${World.players.get(socket.data.PlayerID)!.username} placed ${pData.block} at (${pData.x},${pData.y},${pData.z})`);
     placeBlock(World, pData);
     if (! World.deltas) {return};
     World.deltas.push(pData);
-})
+}
 
-lto.on('pos', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+async function handlePos(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
     let pData = packet.Data as PlayerPos;
     posUpdate(socket.data.PlayerID, World, pData);
     World.players.get(socket.data.PlayerID)!.Position = pData;
-})
+}
 
-lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+async function handleChat(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
     let Player = World.players.get(socket.data.PlayerID);
     let pData = packet.Data as CMsg;
     let msg = '<' + Player!.username + '> ' + pData.msg;
@@ -81,9 +81,9 @@ lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Ui
             broadcast(World.players, await returnChatMsg(msg, socket.data.PlayerID));
         }
     }
-})
+}
 
-lto.on('disconnect', async (socket: Socket<SocketData>) => {
+async function handleDisconnect(socket: Socket<SocketData>) {
         if (socket.data.PlayerID !== -1) {
             let ID = socket.data.PlayerID;
             let uname = World.players.get(ID)!.username;
@@ -92,4 +92,5 @@ lto.on('disconnect', async (socket: Socket<SocketData>) => {
             despawnPlayer(ID, World);
             broadcast(World.players, await returnChatMsg(uname + ' disconnected!', socket.data.PlayerID));
         }
-})
+}
+let server = new Server(handleLogin, handleBlock, handlePos, handleChat, handleDisconnect, 25565);

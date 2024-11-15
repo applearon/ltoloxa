@@ -36,7 +36,6 @@ export class Server {
                     } break;
                     default: {
                         console.log("Unmanaged Packet :(");
-        
                     }
                 }
             }, 

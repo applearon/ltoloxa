@@ -7,7 +7,28 @@ const EventEmitter = require('node:events');
 class Emitter extends EventEmitter {}
 export const lto = new Emitter();
 export class Server {
-    constructor(loginCallback, blockCallback, movementCallback, chatCallback, disconnectCallback, port: number) {
+    static tickBased(port) {
+        return new this(() => {}, () => {}, () => {}, () => {}, () => {}, port, true);
+    }
+    constructor(loginCallback, blockCallback, movementCallback, chatCallback, disconnectCallback, port: number, tickBased: boolean=false) {
+        this.packetQueue = [];
+        if (tickBased) {
+        loginCallback = (packet,socket,data) => {
+            this.packetQueue.push(["login" ,packet, socket]);
+            };
+        blockCallback = (packet,socket,data) => {
+            this.packetQueue.push(["block" ,packet, socket]);
+            };
+        movementCallback = (packet,socket,data) => {
+            this.packetQueue.push(["movement" ,packet, socket]);
+            };
+        chatCallback = (packet,socket,data) => {
+            this.packetQueue.push(["chat" ,packet, socket]);
+            };
+        disconnectCallback = (packet,socket,data) => {
+            this.packetQueue.push(["disconnect", socket]);
+            };
+        }
         Bun.listen<SocketData>({
           hostname: "0.0.0.0",
           port: port,
@@ -55,6 +76,13 @@ export class Server {
             },
           },
         });
+    }
+    tickLoop(tickFunc, tickRate) {
+        setTimeout(() => {
+            tickFunc(this.packetQueue);
+            this.packetQueue = [];
+            this.tickLoop(tickFunc, tickRate);
+        }, 1000/tickRate)
     }
 }
 

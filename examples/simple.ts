@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World, SocketData } from 'types.ts';
+import { parseTypes } from 'types.ts';
 import { getID, returnServerID, sendWorld, spawnPlayer } from 'loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from 'socketHelpers.ts';
 import { returnChatMsg, buildWorld, placeBlock, posUpdate, teleport } from 'utils.ts';
@@ -36,7 +37,7 @@ async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
     broadcast(World.players, await returnChatMsg(data.username + ' has joined!', socket.data.PlayerID));
 };
 
-async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
+async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {
     let pData = packet.Data as CSetBlock;
     console.log(`${World.players.get(socket.data.PlayerID)!.username} placed ${pData.block} at (${pData.x},${pData.y},${pData.z})`);
     placeBlock(World, pData);
@@ -44,13 +45,13 @@ async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>, dat
     World.deltas.push(pData);
 }
 
-async function handlePos(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
+async function handlePos(packet: ClientPacket, socket: Socket<SocketData>) {
     let pData = packet.Data as PlayerPos;
     posUpdate(socket.data.PlayerID, World, pData);
     World.players.get(socket.data.PlayerID)!.Position = pData;
 }
 
-async function handleChat(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
+async function handleChat(packet: ClientPacket, socket: Socket<SocketData>) {
     let Player = World.players.get(socket.data.PlayerID);
     let pData = packet.Data as CMsg;
     let msg = '<' + Player!.username + '> ' + pData.msg;

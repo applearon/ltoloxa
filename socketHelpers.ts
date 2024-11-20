@@ -11,6 +11,11 @@ export async function broadcast(players: Map<number, Player>, data: Uint8Array, 
         }
     }
 }
+export async function simple_broadcast(players: Array<Socket<SocketData>>, data: Uint8Array) {
+    for (let player of players) {
+        player.write(data);
+    }
+}
 
 export async function parseClientData(socket: Socket<SocketData>, data: Uint8Array) {
     let packetdata = {} as ClientPacket;

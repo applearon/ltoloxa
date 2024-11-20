@@ -54,6 +54,11 @@ export interface Entity {
     pos: PlayerPos,
     id: number,
 }
+
+export interface OutBoundPacket {
+    players: Socket<SocketData>[],
+    packet: Uint8Array
+}
 export async function parseShort(data: Uint8Array, begin: number) {
     // return the number of index begin (inclusive)
     //let byte = data[begin].concat(data[begin+1]);

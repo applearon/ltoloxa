@@ -37,7 +37,7 @@ async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
     broadcast(World.players, await returnChatMsg(data.username + ' has joined!', socket.data.PlayerID));
 };
 
-async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
+async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {
     let pData = packet.Data as CSetBlock;
     console.log(`${World.players.get(socket.data.PlayerID)!.username} placed ${pData.block} at (${pData.x},${pData.y},${pData.z})`);
     placeBlock(World, pData);
@@ -45,13 +45,13 @@ async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>, dat
     World.deltas.push(pData);
 }
 
-async function handlePos(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
+async function handlePos(packet: ClientPacket, socket: Socket<SocketData>) {
     let pData = packet.Data as PlayerPos;
     posUpdate(socket.data.PlayerID, World, pData);
     World.players.get(socket.data.PlayerID)!.Position = pData;
 }
 
-async function handleChat(packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) {
+async function handleChat(packet: ClientPacket, socket: Socket<SocketData>) {
     let Player = World.players.get(socket.data.PlayerID);
     let pData = packet.Data as CMsg;
     let msg = '<' + Player!.username + '> ' + pData.msg;
@@ -77,33 +77,6 @@ async function handleChat(packet: ClientPacket, socket: Socket<SocketData>, data
 
             }
         } break;
-        case "/reset": {
-            let placePacket = {x: 0, y: 0, z:0, block: 0} as CSetBlock;
-            let resp = [0x06, 0, 0, 0, 0];
-            let typeArr = ['hex', 'short', 'short', 'short', 'hex'];
-            let typeOut = []
-            let outArr = [];
-            //broadcast(World.players, await parseTypes(resp, ['hex', 'short', 'short', 'short', 'hex']));
-            for (let x = 0; x < World.x; x++) {
-                //placePacket.x = x
-                resp[1] = x;
-                for (let y =0; y < World.y; y++) {
-                    //placePacket.y = y;
-                    resp[2] = y;
-                    for (let z=0; z < World.z; z++) {
-                        //placePacket.z = z;
-                        resp[3] = z;
-                        outArr = outArr.concat(resp);
-                        typeOut = typeOut.concat(typeArr);
-                        //placeBlock(World, placePacket);
-                    }
-                await broadcast(World.players, await parseTypes(outArr, typeOut));
-                outArr = [];
-                typeOut = [];
-                }
-                console.log(x);
-            }
-        }
         default: {
             broadcast(World.players, await returnChatMsg(msg, socket.data.PlayerID));
         }
@@ -121,7 +94,7 @@ async function handleDisconnect(socket: Socket<SocketData>) {
         }
 }
 let server = Server.tickBased(25565);
-async function tick(arr) {
+async function tick(arr: Array<any>) {
     for (let packet of arr) {
         switch(packet[0]) {
             case "login": {

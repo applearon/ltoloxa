@@ -32,9 +32,9 @@ async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
     let player = {username: data.username, Position: spawnPos, socket: socket, op: false} as Player;
     World.players.set(socket.data.PlayerID, player);
     let worldGZ = Bun.gzipSync(await buildWorld(World, getBlock));
-    sendWorld(World, player, worldGZ, socket);
-    spawnPlayer(socket, player, World.players);
-    broadcast(World.players, await returnChatMsg(data.username + ' has joined!', socket.data.PlayerID));
+    await sendWorld(World, player, worldGZ, socket);
+    await spawnPlayer(socket, player, World.players);
+    await broadcast(World.players, await returnChatMsg(data.username + ' has joined!', socket.data.PlayerID));
 };
 
 async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {

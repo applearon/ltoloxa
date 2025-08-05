@@ -17,6 +17,33 @@ export async function simple_broadcast(players: Array<Socket<SocketData>>, data:
     }
 }
 
+export async function parseMultiplePackets(socket: Socket<SocketData>, data: Uint8Array) {
+    let i = 0;
+    let packets = [];
+    while (i < data.length) {
+        let pid = data[i];
+        let packet_len = 1;
+        switch (pid) {
+            case 0: {
+                packet_len = 131
+            } break;
+            case 0x05: {
+                packet_len = 9
+            } break;
+            case 0x08: {
+                packet_len = 10
+            } break;
+            case 0x0d: {
+                packet_len = 66
+            } break;
+            default: {
+            }
+        }
+        packets.push(await parseClientData(socket, data.slice(i - data.length )))
+        i= i + packet_len
+    }
+    return packets;
+}
 export async function parseClientData(socket: Socket<SocketData>, data: Uint8Array) {
     let packetdata = {} as ClientPacket;
     const pid = data[0];
@@ -63,6 +90,7 @@ export async function parseClientData(socket: Socket<SocketData>, data: Uint8Arr
             packetdata.Data = {x: x, y: y, z: z, yaw: yaw, pitch: pitch} as PlayerPos;
         } break;
         default: {
+            console.log(data)
             // Handle unknown packets
             return packetdata;
         } break;

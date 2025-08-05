@@ -58,9 +58,11 @@ export async function sendWorld(World: World, player: Player, worldGZ: Uint8Arra
         byteInfo.push('hex');
         //console.log("sending wave ", info.length);
         socket.write(await parseTypes(info, byteInfo));
+        await new Promise(r => setTimeout(r, 0.1 * 1000));
     }
     // now we send the final one
     let leftover = (array.length - pos*1024).toString(16).padStart(4, '0');
+    console.log(leftover)
     console.log('leftovers: ', parseInt(leftover.substring(2,4), 16));
     console.log(array.length - pos*1024);
     let info = [0x03, parseInt(leftover.substring(0,2), 16), parseInt(leftover.substring(2,4), 16) ];
@@ -76,11 +78,12 @@ export async function sendWorld(World: World, player: Player, worldGZ: Uint8Arra
     }
     info.push(0xff);
     byteInfo.push('hex');
-    
+    console.log(info)
+    console.log(byteInfo)
     socket.write(await parseTypes(info, byteInfo));
+    await new Promise(r => setTimeout(r, 0.1 * 1000));
     
     //socket.write(new Uint8Array([0x04, 0x01, 0x00, 0x00, 0x64, 0x01, 0x00]));
-    
     socket.write(await parseTypes([0x04, World.x, World.y, World.z], ['hex', 'short', 'short', 'short']));
 }
 
@@ -92,6 +95,7 @@ export async function spawnPlayer(socket: Socket<SocketData>, player: Player, pl
     broadcast(players, await parseTypes(resp, respTypes), [data.PlayerID]);
     resp[1] = 0xFF;
     socket.write(await parseTypes(resp, respTypes));
+    await new Promise(r => setTimeout(r, 0.1 * 1000));
     socket.write(await parseTypes([0x08, 0xFF, player.Position.x, player.Position.y, player.Position.z, player.Position.yaw, player.Position.pitch ], ['hex', 'hex', 'FShort', 'FShort', 'FShort', 'hex', 'hex'])); 
     // we inform client of players currently online
     for (let [key, value] of players) {

@@ -13,9 +13,10 @@ export async function buildWorld(World: World, func: Function) {
     let ly = World.y;
     let size = lx * ly * lz;
     let hexarr = size.toString(16).padStart(8, "0").match(/\d{2}/g);
-    const buffer = Buffer.alloc(size);
+    const buffer = Buffer.alloc(size+4);
     for (let i = 0; i < hexarr!.length; i++) {
         buffer[i] = parseInt(hexarr![i],16);
+        console.log(buffer[i])
         //writer.write(buffer);
     }
     for (let y = 0; y < ly; y++) {
@@ -26,6 +27,8 @@ export async function buildWorld(World: World, func: Function) {
         }
     }
     updateDeltas(World, buffer);
+    console.log(buffer.length, size)
+    console.log(buffer[size+3])
     return buffer;
 }
 

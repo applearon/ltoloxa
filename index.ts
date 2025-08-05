@@ -2,7 +2,7 @@
 import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, SocketData, OutBoundPacket } from 'types.ts';
 import { parseShort, parseString, parseTypes } from 'types.ts';
 import { getID, returnServerID, sendWorld,spawnPlayer } from 'loginHelpers.ts';
-import { simple_broadcast, broadcast, parseClientData } from 'socketHelpers.ts';
+import { simple_broadcast, broadcast, parseMultiplePackets } from 'socketHelpers.ts';
 import type { Socket } from 'bun';
 
 const EventEmitter = require('node:events');
@@ -38,29 +38,32 @@ export class Server {
           port: port,
           socket: {
             async data(socket, data) {
-                let packet = await parseClientData(socket, data) as ClientPacket;
-                switch (packet.ID) {
-                    case 0x00: { // login
-                        let Pdata = packet.Data as CPlayerID;
-                        if (Pdata.PVersion === 0x07) { // Assumes you want only classic v0.30
-                            console.log(`${Pdata.username} attempting to join`);
-                            await loginCallback(packet, socket);
-                        } else {
-                            console.log("Invalid Packet Version, closing connection");
-                            socket.end();
+                let packets = await parseMultiplePackets(socket, data) as [ClientPacket];
+                for (let packet of packets) {
+                    switch (packet.ID) {
+                        case 0x00: { // login
+                            let Pdata = packet.Data as CPlayerID;
+                            if (Pdata.PVersion === 0x07) { // Assumes you want only classic v0.30
+                                console.log(`${Pdata.username} attempting to join`);
+                                await loginCallback(packet, socket);
+                            } else {
+                                console.log("Invalid Packet Version, closing connection");
+                                socket.end();
+                            }
+                        } break;
+                        case 0x05: { // place/break block
+                            await blockCallback(packet, socket);
+                        } break;
+                        case 0x08: { // movement
+                            await movementCallback(packet, socket);
+                        } break;
+                        case 0x0d: { // chat msg
+                            await chatCallback(packet, socket);
+                        } break;
+                        default: {
+                            console.log(packet)
+                            console.log("Unmanaged Packet :(");
                         }
-                    } break;
-                    case 0x05: { // place/break block
-                        await blockCallback(packet, socket);
-                    } break;
-                    case 0x08: { // movement
-                        await movementCallback(packet, socket);
-                    } break;
-                    case 0x0d: { // chat msg
-                        await chatCallback(packet, socket);
-                    } break;
-                    default: {
-                        console.log("Unmanaged Packet :(");
                     }
                 }
             }, 

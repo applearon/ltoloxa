@@ -10,16 +10,25 @@ Simplfies creating a Minecraft Classic server by parsing the raw packets, and fo
 
 ## Usage
 ```js
-import { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, parseShort, parseString, parseTypes } from 'types.ts';
-import { getID, returnServerID, sendWorld,spawnPlayer, spawnPlayer } from 'loginHelpers.ts';
-import { broadcast, parseClientData } from 'socketHelpers.ts';
-import { lto } from 'index.ts';
+import type { ClientPacket, SocketData } from 'types.ts';
+import { Server } from 'index.ts';
+import type { Socket } from 'bun';
 
-lto.on('login', async (packet, socket, data) => {});
-lto.on('block', async (packet, socket, data) => {});
-lto.on('pos', async (packet, socket, data) => {});
-lto.on('chat', async (packet socket, data) => {});
-lto.on('disconnect', async (socket) => {});
+async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
+};
+
+async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {
+}
+
+async function handlePos(packet: ClientPacket, socket: Socket<SocketData>) {
+}
+
+async function handleChat(packet: ClientPacket, socket: Socket<SocketData>) {
+}
+
+async function handleDisconnect(socket: Socket<SocketData>) {
+}
+let server = new Server(handleLogin, handleBlock, handlePos, handleChat, handleDisconnect, 25565);
 ```
 
 

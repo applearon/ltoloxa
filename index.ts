@@ -5,9 +5,6 @@ import { getID, returnServerID, sendWorld,spawnPlayer } from 'loginHelpers.ts';
 import { simple_broadcast, broadcast, parseMultiplePackets } from 'socketHelpers.ts';
 import type { Socket } from 'bun';
 
-const EventEmitter = require('node:events');
-class Emitter extends EventEmitter {}
-export const lto = new Emitter();
 export class Server {
     static tickBased(port: number) {
         return new this(() => {}, () => {}, () => {}, () => {}, () => {}, port, true);

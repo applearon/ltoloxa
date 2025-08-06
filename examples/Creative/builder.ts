@@ -5,7 +5,7 @@ import type { ClientPacket, CPlayerID, CSetBlock, CMsg, PlayerPos, Player, World
 import { getID, returnServerID, sendWorld, spawnPlayer } from 'loginHelpers.ts';
 import { broadcast, parseClientData, despawnPlayer } from 'socketHelpers.ts';
 import { returnChatMsg, buildWorld, placeBlock, posUpdate, exportWorld, getBlock, updateDeltas } from 'utils.ts';
-import { lto } from 'index.ts';
+import { Server } from 'index.ts';
 let spawnPos = {x: 32, y: 34, z: 32, yaw: 0x00, pitch: 0x00} as PlayerPos;
 let World = {
     x: 65, y: 64, z: 65,
@@ -39,7 +39,7 @@ const blockAt = (World: World, x: number, y: number, z: number) => { // generate
     return block;
 }
 
-lto.on('login', async (packet: ClientPacket, socket: Socket<SocketData>) => {
+async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
     socket.data = { PlayerID: await getID(World.players)};
     let pData = packet.Data as CPlayerID;
     let player = {username: pData.username, Position: spawnPos, socket: socket, op: (pData.verifyKey == opKey) } as Player;
@@ -49,12 +49,12 @@ lto.on('login', async (packet: ClientPacket, socket: Socket<SocketData>) => {
     updateDeltas(World, buffer);
     World.buffer = new Buffer(buffer);
     let worldGZ = Bun.gzipSync(World.buffer);
-    sendWorld(World, player, worldGZ, socket);
-    spawnPlayer(socket, player, World.players);
-    broadcast(World.players, await returnChatMsg(pData.username + ' has joined!', socket.data.PlayerID));
-});
+    await sendWorld(World, player, worldGZ, socket);
+    await spawnPlayer(socket, player, World.players);
+    await broadcast(World.players, await returnChatMsg(pData.username + ' has joined!', socket.data.PlayerID));
+};
 
-lto.on('block', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {
     let pData = packet.Data as CSetBlock;
     if (World.players.get(socket.data.PlayerID)!.op) {
         console.log(`${World.players.get(socket.data.PlayerID)!.username} placed ${pData.block} at (${pData.x},${pData.y},${pData.z}), replacing ${await getBlock(World, pData.x, pData.y, pData.z)}`);
@@ -66,13 +66,13 @@ lto.on('block', async (packet: ClientPacket, socket: Socket<SocketData>, data: U
         let block = {x: pData.x, y: pData.y, z: pData.z, block: old} as CSetBlock;
         placeBlock(World, block);
     }
-})
+}
 
-lto.on('pos', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+async function handlePos(packet: ClientPacket, socket: Socket<SocketData>) {
     posUpdate(socket.data.PlayerID, World, packet.Data as PlayerPos); // passing data to be more efficient 
-})
+}
 
-lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Uint8Array) => {
+async function handleChat(packet: ClientPacket, socket: Socket<SocketData>) {
     let player = World.players.get(socket.data.PlayerID);
     let pData = packet.Data as CMsg;
     let txt = pData.msg.toString().split(' ');
@@ -121,9 +121,9 @@ lto.on('chat', async (packet: ClientPacket, socket: Socket<SocketData>, data: Ui
         let msg = '<' + World.players.get(socket.data.PlayerID)!.username + '> ' + pData.msg;
         broadcast(World.players, await returnChatMsg(msg, socket.data.PlayerID));
     }
-})
+}
 
-lto.on('disconnect', async (socket: Socket<SocketData>) => {
+async function handleDisconnect(socket: Socket<SocketData>) {
         if (socket.data.PlayerID !== -1) {
             let ID = socket.data.PlayerID;
             let uname = World.players.get(ID)!.username;
@@ -132,4 +132,6 @@ lto.on('disconnect', async (socket: Socket<SocketData>) => {
             despawnPlayer(ID, World);
             broadcast(World.players, await returnChatMsg(uname + ' disconnected!', socket.data.PlayerID));
         }
-})
+}
+
+let server = new Server(handleLogin, handleBlock, handlePos, handleChat, handleDisconnect, 25565);

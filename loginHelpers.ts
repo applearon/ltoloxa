@@ -8,7 +8,7 @@ export async function getID(players: Map<number, Player>) {
     let id = 0;
     for (let [key, val] of players) {
         vals[key] = -1;
-        console.log("hi", key);
+        //console.log("hi", key);
     }
     for (let i = 0; i < vals.length; i++) {
         if (vals[i] != -1) {
@@ -62,9 +62,9 @@ export async function sendWorld(World: World, player: Player, worldGZ: Uint8Arra
     }
     // now we send the final one
     let leftover = (array.length - pos*1024).toString(16).padStart(4, '0');
-    console.log(leftover)
-    console.log('leftovers: ', parseInt(leftover.substring(2,4), 16));
-    console.log(array.length - pos*1024);
+    //console.log(leftover)
+    //console.log('leftovers: ', parseInt(leftover.substring(2,4), 16));
+    //console.log(array.length - pos*1024);
     let info = [0x03, parseInt(leftover.substring(0,2), 16), parseInt(leftover.substring(2,4), 16) ];
     let byteInfo = ['hex', 'hex', 'hex'];
     for (let i = 0; i < 1024; i++) {
@@ -78,8 +78,6 @@ export async function sendWorld(World: World, player: Player, worldGZ: Uint8Arra
     }
     info.push(0xff);
     byteInfo.push('hex');
-    console.log(info)
-    console.log(byteInfo)
     socket.write(await parseTypes(info, byteInfo));
     await new Promise(r => setTimeout(r, 0.1 * 1000));
     

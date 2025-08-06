@@ -14,20 +14,12 @@ import type { ClientPacket, SocketData } from 'types.ts';
 import { Server } from 'index.ts';
 import type { Socket } from 'bun';
 
-async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {
-};
+async function handleLogin(packet: ClientPacket, socket: Socket<SocketData>) {}
+async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {}
+async function handlePos(packet: ClientPacket, socket: Socket<SocketData>) {}
+async function handleChat(packet: ClientPacket, socket: Socket<SocketData>) {}
+async function handleDisconnect(socket: Socket<SocketData>) {}
 
-async function handleBlock(packet: ClientPacket, socket: Socket<SocketData>) {
-}
-
-async function handlePos(packet: ClientPacket, socket: Socket<SocketData>) {
-}
-
-async function handleChat(packet: ClientPacket, socket: Socket<SocketData>) {
-}
-
-async function handleDisconnect(socket: Socket<SocketData>) {
-}
 let server = new Server(handleLogin, handleBlock, handlePos, handleChat, handleDisconnect, 25565);
 ```
 
